@@ -35,7 +35,8 @@ GAME.init = function(){
   World.add(engine.world, mouseConstraint);
 
   var order = [     // branches[fromX,fromY,toX,toY]
-    [-1,0,0,-2], [1,0,0,-2]
+    [-1,0,0,-2], [1,0,0,-2], [0,-2,0,-4], [0,-4,0,-6],
+
   ];
 
 
@@ -46,6 +47,7 @@ GAME.init = function(){
       if(! (order[i][j*2+0]+":"+order[i][j*2+1] in nodes) ){
         var x = order[i][j*2+0];
         var y = order[i][j*2+1];
+
         nodes[ x+":"+y ] = {
           x: x,
           y: y,
@@ -58,32 +60,45 @@ GAME.init = function(){
             }
           }),
         };
+        if( y == 0 ){continue;}
         World.add(engine.world, nodes[ x+":"+y ].obj);
+
+        var branch = Constraint.create({
+          bodyA: nodes[ x+":"+y ].obj,
+          pointB: {x:nodes[ x+":"+y ].obj.position.x, y:nodes[ x+":"+y ].obj.position.y},
+          stiffness: 0.02,
+          render: {
+            visible: false
+          },
+        });
+        World.add(engine.world, branch);
       }
     }
   }
 
   //Ž}
-  var branchA = Constraint.create({
-    bodyA: nodes["0:-2"].obj,
-    pointB: { x:_OFFSET.x-_SCALE, y:_OFFSET.y },
-    stiffness: 0.2,
-    render: {
-      strokeStyle: "#008000",
-      lineWidth: 2,
-    },
-  });
-  var branchB = Constraint.create({
-    bodyA: nodes["0:-2"].obj,
-    pointB: { x:_OFFSET.x+_SCALE, y:_OFFSET.y },
-    stiffness: 0.2,
-    render:{
-      strokeStyle: "#008000",
-      lineWidth: 2,
-    },
-  });
-
-  World.add(engine.world, [branchA,branchB]);
+  for(var i=0; i<order.length; i++){
+    var A = [ order[i][0], order[i][1] ];
+    var B = [ order[i][2], order[i][3] ];
+    var branch =  Constraint.create({
+      bodyA: nodes[A[0]+":"+A[1]].obj,
+      bodyB: nodes[B[0]+":"+B[1]].obj,
+      stiffness: 0.2,
+      render: {
+        strokeStyle: "#008000",
+        lineWidth: 2,
+      },
+    });
+    if( A[1] == 0 ){
+      delete branch.bodyA;
+      branch.pointA = {x:_OFFSET.x+A[0]*_SCALE, y:_OFFSET.y+A[1]*_SCALE};
+    }
+    if( B[1] == 0 ){
+      delete branch.bodyB;
+      branch.pointB = {x:_OFFSET.x+B[0]*_SCALE, y:_OFFSET.y+B[1]*_SCALE};
+    }
+    World.add(engine.world, branch);
+  }
 
 
   var softbody = Composites.softBody(100,50,1,5,0,0,true,10,{
