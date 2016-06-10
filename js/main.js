@@ -1,9 +1,10 @@
 (function(){
 //Matter.js モジュール 初期設定
 var Engine = Matter.Engine, //物理シュミレーションおよびレンダリングを管理する
+  Events = Matter.Events,
   Render = Matter.Render, //デバッグ用の描画
 	World = Matter.World, //物理演算領域の作成・操作するメソッドを含む
-	//Body = Matter.Body, //剛体のモデルを作成・操作するメソッドを含む
+	Body = Matter.Body, //剛体のモデルを作成・操作するメソッドを含む
 	Bodies = Matter.Bodies, //一般的な剛体モデルを作成するメソッドを含む
 	Constraint = Matter.Constraint, //制約を作成・操作するメソッドを含む
 	Composites = Matter.Composites,
@@ -15,6 +16,7 @@ const _SCALE = 40;
 const _OFFSET = {x:320, y:470};
 var GAME = {};
 var engine = null;
+var mouse = {x:0,y:0};
 
 GAME.init = function(){
   //Engine作成:
@@ -109,7 +111,7 @@ GAME.init = function(){
   World.add(engine.world, softbody);
 
   //床
-  World.add(engine.world, [Bodies.rectangle(320, 480, 650, 20, {
+  World.add(engine.world, [Bodies.rectangle(320, 500, 650, 60, {
     isStatic: true,
     render: {
       fillStyle: "#00ff00",
@@ -119,15 +121,27 @@ GAME.init = function(){
   //ball
   var x = 64*5;
   var y = 0;
-  World.add(engine.world, Bodies.circle(x, y, 30, {
+  var ball =  Bodies.circle(x, y, 30, {
     density: 0.0005,
     frictionAir: 0.01,
     restitution: 1,
     friction: 0.01
-  }));
-
+  });
+  World.add(engine.world, ball);
+  Body.setPosition(ball, {x:64*4, y:0});
 
   Engine.run(engine);
+
+  Events.on(engine, "afterUpdate", function(){
+
+  });
+  engine.render.canvas.addEventListener('mousemove', function(e){
+    mouse.x = e.pageX;
+    mouse.y = e.pageY;
+    //Body.setPosition(ball, {x:x, y:y});
+  	// var c = Bodies.circle(64*5, 0, 10, { restitution: 1.2 });
+  	// World.add(engine.world, [c]);
+  });
 };
 if( window.addEventListener ){
   window.addEventListener('load', GAME.init);
