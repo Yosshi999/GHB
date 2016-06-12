@@ -16,8 +16,10 @@ const _SCALE = 40;
 const _OFFSET = {x:320, y:470};
 var GAME = {};
 var engine = null;
-var mouse = {x:0,y:0};
+var mouse = new Vector2(0,0);
 
+var mouseConstraint,nodes,ball;
+var branches = [];
 GAME.init = function(){
   //EngineçÏê¨:
   var container = document.getElementById("canvas-container");
@@ -33,7 +35,7 @@ GAME.init = function(){
   });
 
   //É}ÉEÉXëÄçÏí«â¡
-  var mouseConstraint = MouseConstraint.create(engine);
+  mouseConstraint = MouseConstraint.create(engine);
   World.add(engine.world, mouseConstraint);
 
   var order = [     // branches[fromX,fromY,toX,toY]
@@ -41,9 +43,18 @@ GAME.init = function(){
 
   ];
 
+  //è∞
+  var floor = Bodies.rectangle(320, 500, 650, 60, {
+    isStatic: true,
+    render: {
+      fillStyle: "#00ff00",
+    }
+  });
+  World.add(engine.world, floor);
+
 
   //êﬂ
-  var nodes = {};
+  nodes = {};
   for(var i=0; i<order.length; i++){
     for(var j=0; j<2; j++){
       if(! (order[i][j*2+0]+":"+order[i][j*2+1] in nodes) ){
@@ -65,7 +76,7 @@ GAME.init = function(){
         if( y == 0 ){continue;}
         World.add(engine.world, nodes[ x+":"+y ].obj);
 
-        var branch = Constraint.create({
+        var invisibleBranch = Constraint.create({
           bodyA: nodes[ x+":"+y ].obj,
           pointB: {x:nodes[ x+":"+y ].obj.position.x, y:nodes[ x+":"+y ].obj.position.y},
           stiffness: 0.02,
@@ -73,7 +84,7 @@ GAME.init = function(){
             visible: false
           },
         });
-        World.add(engine.world, branch);
+        World.add(engine.world, invisibleBranch);
       }
     }
   }
@@ -92,14 +103,15 @@ GAME.init = function(){
       },
     });
     if( A[1] == 0 ){
-      delete branch.bodyA;
-      branch.pointA = {x:_OFFSET.x+A[0]*_SCALE, y:_OFFSET.y+A[1]*_SCALE};
+      branch.bodyA = floor;
+      branch.pointA = {x:A[0]*_SCALE, y:-30};
     }
     if( B[1] == 0 ){
-      delete branch.bodyB;
-      branch.pointB = {x:_OFFSET.x+B[0]*_SCALE, y:_OFFSET.y+B[1]*_SCALE};
+      branch.bodyB = floor;
+      branch.pointB = {x:B[0]*_SCALE, y:-30};
     }
     World.add(engine.world, branch);
+    branches.push(branch);
   }
 
 
@@ -110,18 +122,10 @@ GAME.init = function(){
   });
   World.add(engine.world, softbody);
 
-  //è∞
-  World.add(engine.world, [Bodies.rectangle(320, 500, 650, 60, {
-    isStatic: true,
-    render: {
-      fillStyle: "#00ff00",
-    }
-  })]);
-
   //ball
   var x = 64*5;
   var y = 0;
-  var ball =  Bodies.circle(x, y, 30, {
+  ball =  Bodies.circle(x, y, 30, {
     density: 0.0005,
     frictionAir: 0.01,
     restitution: 1,
@@ -133,7 +137,7 @@ GAME.init = function(){
   Engine.run(engine);
 
   Events.on(engine, "afterUpdate", function(){
-
+    GAME.update();
   });
   engine.render.canvas.addEventListener('mousemove', function(e){
     mouse.x = e.pageX;
@@ -143,6 +147,31 @@ GAME.init = function(){
   	// World.add(engine.world, [c]);
   });
 };
+GAME.update = function(){
+  for(var i=0; i<branches.length; i++){
+
+    var obj = branches[i];
+    var BtoA = new Vector2(
+        (obj.bodyA.position.x+obj.pointA.x) - (obj.bodyB.position.x+obj.pointB.x),
+        (obj.bodyA.position.y+obj.pointA.y) - (obj.bodyB.position.y+obj.pointB.y)
+    );
+    var BtoMouse = new Vector2(
+      mouse.x - (obj.bodyB.position.x+obj.pointB.x),
+      mouse.y - (obj.bodyB.position.y+obj.pointB.y)
+    );
+    var AtoMouse = new Vector2(
+      mouse.x - (obj.bodyA.position.x+obj.pointA.x),
+      mouse.y - (obj.bodyA.position.y+obj.pointA.y)
+    );
+    obj.render.strokeStyle = "#008000";
+    if( BtoA.dot(BtoMouse) >0 && BtoA.times(-1).dot(AtoMouse) >0 ){
+      if( Math.abs(BtoA.cross(BtoMouse)/2/BtoA.length()+3) < 5 ){
+        obj.render.strokeStyle = "#ff0000";
+      }
+    }
+  }
+};
+
 if( window.addEventListener ){
   window.addEventListener('load', GAME.init);
 }else if( window.attachEvent ){
