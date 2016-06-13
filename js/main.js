@@ -17,9 +17,11 @@ const _OFFSET = {x:320, y:470};
 var GAME = {};
 var engine = null;
 var mouse = new Vector2(0,0);
+var mouseClick = false;
 
-var mouseConstraint,nodes,ball;
-var branches = [];
+var mouseConstraint,ball;
+var branches = [];    // Array( {obj: Constraint, tag:{water: bool} } )
+var nodes = {};       // Object{ x,y,obj,hideObj, tag:{value:int, water:bool} }
 GAME.init = function(){
   //EngineçÏê¨:
   var container = document.getElementById("canvas-container");
@@ -64,7 +66,6 @@ GAME.init = function(){
         nodes[ x+":"+y ] = {
           x: x,
           y: y,
-          value: 0,
           obj: Bodies.circle(_OFFSET.x + x*_SCALE, _OFFSET.y + y*_SCALE, 5, {
             timeScale: 0.5,
             render: {
@@ -72,6 +73,11 @@ GAME.init = function(){
                 fillStyle: "#008000"
             }
           }),
+          hideObj: null,
+          tag: {
+            water: false,
+            value: 0,
+          }
         };
         if( y == 0 ){continue;}
         World.add(engine.world, nodes[ x+":"+y ].obj);
@@ -85,11 +91,13 @@ GAME.init = function(){
           },
         });
         World.add(engine.world, invisibleBranch);
+        nodes[ x+":"+y ].hideObj = invisibleBranch;
       }
     }
   }
 
   //é}
+
   for(var i=0; i<order.length; i++){
     var A = [ order[i][0], order[i][1] ];
     var B = [ order[i][2], order[i][3] ];
@@ -111,7 +119,7 @@ GAME.init = function(){
       branch.pointB = {x:B[0]*_SCALE, y:-30};
     }
     World.add(engine.world, branch);
-    branches.push(branch);
+    branches.push( {obj:branch, tag:{water:false}} );
   }
 
 
@@ -150,34 +158,49 @@ GAME.init = function(){
   	// var c = Bodies.circle(64*5, 0, 10, { restitution: 1.2 });
   	// World.add(engine.world, [c]);
   });
+  engine.render.canvas.addEventListener("mousedown",function(e){
+    mouse.x = e.pageX -5;
+    mouse.y = e.pageY -5;
+    mouseClick = true;
+  });
 };
 GAME.update = function(){
   //mouseover,mouseclick
-  var found = false;
-  for(var i=0; i<branches.length; i++){
+  {
+    var found = false;
+    for(var i=0; i<branches.length; i++){
 
-    var obj = branches[i];
-    var BtoA = new Vector2(
-        (obj.bodyA.position.x+obj.pointA.x) - (obj.bodyB.position.x+obj.pointB.x),
-        (obj.bodyA.position.y+obj.pointA.y) - (obj.bodyB.position.y+obj.pointB.y)
-    );
-    var BtoMouse = new Vector2(
-      mouse.x - (obj.bodyB.position.x+obj.pointB.x),
-      mouse.y - (obj.bodyB.position.y+obj.pointB.y)
-    );
-    var AtoMouse = new Vector2(
-      mouse.x - (obj.bodyA.position.x+obj.pointA.x),
-      mouse.y - (obj.bodyA.position.y+obj.pointA.y)
-    );
-    obj.render.strokeStyle = "#008000";
-    if(found){continue;}
-    if( BtoA.dot(BtoMouse) >0 && BtoA.times(-1).dot(AtoMouse) >0 ){
-      if( Math.abs(BtoA.cross(BtoMouse)/2/BtoA.length()) < 5 ){
-        obj.render.strokeStyle = "#ff0000";
-        found = true;
+      var obj = branches[i].obj;
+      var BtoA = new Vector2(
+          (obj.bodyA.position.x+obj.pointA.x) - (obj.bodyB.position.x+obj.pointB.x),
+          (obj.bodyA.position.y+obj.pointA.y) - (obj.bodyB.position.y+obj.pointB.y)
+      );
+      var BtoMouse = new Vector2(
+        mouse.x - (obj.bodyB.position.x+obj.pointB.x),
+        mouse.y - (obj.bodyB.position.y+obj.pointB.y)
+      );
+      var AtoMouse = new Vector2(
+        mouse.x - (obj.bodyA.position.x+obj.pointA.x),
+        mouse.y - (obj.bodyA.position.y+obj.pointA.y)
+      );
+      obj.render.strokeStyle = "#008000";
+      if(found){continue;}
+      if( BtoA.dot(BtoMouse) >0 && BtoA.times(-1).dot(AtoMouse) >0 ){
+        if( Math.abs(BtoA.cross(BtoMouse)/2/BtoA.length()) < 5 ){
+          obj.render.strokeStyle = "#ff0000";
+          found = true;
+          if( mouseClick ){
+            mouseClick = false;
+            World.remove(engine.world, obj);
+            branches.splice(i,1);
+            i--;
+          }
+        }
       }
     }
   }
+  // delete isolated graph
+
 };
 
 if( window.addEventListener ){
