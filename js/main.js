@@ -18,10 +18,11 @@ var GAME = {};
 var engine = null;
 var mouse = new Vector2(0,0);
 var mouseClick = false;
+var waitClick = false;
 
 var mouseConstraint,ball;
-var branches = [];    // Array( {obj: Constraint, tag:{water: bool} } )
-var nodes = {};       // Object{ x,y,obj,hideObj, tag:{value:int, water:bool} }
+var branches = [];    // Array( {obj: Constraint, linkA:str, linkB:str, tag:{alpha:int, water: bool} } )
+var nodes = {};       // Object{ x,y,obj,hideObj, tag:{alpha:int, value:int, water:bool} }
 GAME.init = function(){
   //EngineçÏê¨:
   var container = document.getElementById("canvas-container");
@@ -57,6 +58,7 @@ GAME.init = function(){
 
   //êﬂ
   nodes = {};
+  groundNodes = [];
   for(var i=0; i<order.length; i++){
     for(var j=0; j<2; j++){
       if(! (order[i][j*2+0]+":"+order[i][j*2+1] in nodes) ){
@@ -74,12 +76,18 @@ GAME.init = function(){
             }
           }),
           hideObj: null,
+          link: [],     // [ String keyname ]
           tag: {
             water: false,
             value: 0,
+            earth: false,
+            alpha: 1,     // fillStyle alpha
           }
         };
-        if( y == 0 ){continue;}
+        if( y == 0 ){
+          nodes[ x+":"+y ].tag.earth = true;
+          continue;
+        }
         World.add(engine.world, nodes[ x+":"+y ].obj);
 
         var invisibleBranch = Constraint.create({
@@ -119,7 +127,19 @@ GAME.init = function(){
       branch.pointB = {x:B[0]*_SCALE, y:-30};
     }
     World.add(engine.world, branch);
-    branches.push( {obj:branch, tag:{water:false}} );
+    branches.push( {
+      obj: branch,
+      linkA: A[0]+":"+A[1],
+      linkB: B[0]+":"+B[1],
+      tag: {
+        water: false,
+        alpha: 1,
+      }
+    } );
+
+    // node link
+    nodes[A[0]+":"+A[1]].link.push( B[0]+":"+B[1] );
+    nodes[B[0]+":"+B[1]].link.push( A[0]+":"+A[1] );
   }
 
 
@@ -161,14 +181,20 @@ GAME.init = function(){
   engine.render.canvas.addEventListener("mousedown",function(e){
     mouse.x = e.pageX -5;
     mouse.y = e.pageY -5;
-    mouseClick = true;
+    if(waitClick){
+      mouseClick = true;
+    }
   });
+
 };
 GAME.update = function(){
   //mouseover,mouseclick
   {
     var found = false;
     for(var i=0; i<branches.length; i++){
+      if(branches[i].tag.alpha != 1){
+        continue;
+      }
 
       var obj = branches[i].obj;
       var BtoA = new Vector2(
@@ -189,8 +215,26 @@ GAME.update = function(){
         if( Math.abs(BtoA.cross(BtoMouse)/2/BtoA.length()) < 5 ){
           obj.render.strokeStyle = "#ff0000";
           found = true;
-          if( mouseClick ){
+          if(!waitClick){
+            waitClick = true;
             mouseClick = false;
+          }
+          if( mouseClick ){
+            //link cut
+            for(var j=0; j<nodes[branches[i].linkA].link.length; j++){
+              if( nodes[branches[i].linkA].link[j] == branches[i].linkB ){
+                nodes[branches[i].linkA].link.splice(j,1);
+                break;
+              }
+            }
+            for(var j=0; j<nodes[branches[i].linkB].link.length; j++){
+              if( nodes[branches[i].linkB].link[j] == branches[i].linkA ){
+                nodes[branches[i].linkB].link.splice(j,1);
+                break;
+              }
+            }
+            mouseClick = false;
+            waitClick = false;
             World.remove(engine.world, obj);
             branches.splice(i,1);
             i--;
@@ -198,9 +242,84 @@ GAME.update = function(){
         }
       }
     }
+    if(!found){waitClick = false;}
   }
   // delete isolated graph
+  {
+    // init
+    for(var key in nodes){
+      nodes[key].tag.water = false;
+      nodes[key].tag.value = 0;
+    }
+    for(var i=0; i<branches.length; i++){
+      branches[i].tag.water = false;
+    }
+    // start calc
+    var nextKeys = [];
+    for(var key in nodes){
+      if( nodes[key].tag.earth ){
+        nodes[key].tag.water = true;
+        nodes[key].tag.value = 1;
 
+        for(var i=0; i<nodes[key].link.length; i++){
+          nextKeys.push( nodes[key].link[i] );
+          for(var j=0; j<branches.length; j++){
+            if( (branches[j].linkA == key && branches[j].linkB == nodes[key].link[i])
+              || (branches[j].linkB == key && branches[j].linkA == nodes[key].link[i]) ){
+                branches[j].tag.water = true;
+            }
+          }
+        }
+      }
+    }
+    while(nextKeys.length > 0){
+      var key = nextKeys[0];
+      nodes[key].tag.water = true;
+      nodes[key].tag.value = 1;
+
+      for(var i=0; i<nodes[key].link.length; i++){
+        if( nodes[ nodes[key].link[i] ].tag.value == 0 ){
+          nextKeys.push( nodes[key].link[i] );
+          for(var j=0; j<branches.length; j++){
+            if( (branches[j].linkA == key && branches[j].linkB == nodes[key].link[i])
+              || (branches[j].linkB == key && branches[j].linkA == nodes[key].link[i]) ){
+                branches[j].tag.water = true;
+            }
+          }
+        }
+      }
+      nextKeys.splice(0,1);
+    }
+    // delete nodes
+    for(var key in nodes){
+      if(!nodes[key].tag.water){
+        World.remove(engine.world,nodes[key].hideObj);
+        nodes[key].tag.alpha -= 0.01;
+        if(nodes[key].tag.alpha <= 0){
+          World.remove(engine.world,nodes[key].obj);
+          delete nodes[key];
+        } else {
+          nodes[key].obj.render.strokeStyle = "rgba(128,128,128,"+nodes[key].tag.alpha+")";
+          nodes[key].obj.render.fillStyle = "rgba(128,128,128,"+nodes[key].tag.alpha+")";
+        }
+
+      }
+    }
+    for(var i=0; i<branches.length; i++){
+      if(!branches[i].tag.water){
+        branches[i].tag.alpha -= 0.01;
+        if(branches[i].tag.alpha <= 0){
+          World.remove(engine.world,branches[i].obj);
+          branches.splice(i,1);
+          i--;
+          continue;
+        } else {
+          branches[i].obj.render.strokeStyle = "rgba(128,128,128,"+branches[i].tag.alpha+")";
+        }
+
+      }
+    }
+  }
 };
 
 if( window.addEventListener ){
