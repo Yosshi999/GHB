@@ -123,16 +123,20 @@ GAME.init = function(){
   World.add(engine.world, softbody);
 
   //ball
-  var x = 64*5;
-  var y = 0;
-  ball =  Bodies.circle(x, y, 30, {
+  var x = 3;
+  var y = 3;
+  ball =  Bodies.circle(x, y, 15, {
+    isStatic: true,
     density: 0.0005,
     frictionAir: 0.01,
     restitution: 1,
-    friction: 0.01
+    friction: 0.01,
+    render: {
+      fillStyle: "#ff0000"
+    }
   });
   World.add(engine.world, ball);
-  Body.setPosition(ball, {x:64*4, y:0});
+  //Body.setPosition(ball, {x:64*4, y:0});
 
   Engine.run(engine);
 
@@ -140,14 +144,16 @@ GAME.init = function(){
     GAME.update();
   });
   engine.render.canvas.addEventListener('mousemove', function(e){
-    mouse.x = e.pageX;
-    mouse.y = e.pageY;
+    mouse.x = e.pageX - 5;
+    mouse.y = e.pageY - 5;
     //Body.setPosition(ball, {x:x, y:y});
   	// var c = Bodies.circle(64*5, 0, 10, { restitution: 1.2 });
   	// World.add(engine.world, [c]);
   });
 };
 GAME.update = function(){
+  //mouseover,mouseclick
+  var found = false;
   for(var i=0; i<branches.length; i++){
 
     var obj = branches[i];
@@ -164,9 +170,11 @@ GAME.update = function(){
       mouse.y - (obj.bodyA.position.y+obj.pointA.y)
     );
     obj.render.strokeStyle = "#008000";
+    if(found){continue;}
     if( BtoA.dot(BtoMouse) >0 && BtoA.times(-1).dot(AtoMouse) >0 ){
-      if( Math.abs(BtoA.cross(BtoMouse)/2/BtoA.length()+3) < 5 ){
+      if( Math.abs(BtoA.cross(BtoMouse)/2/BtoA.length()) < 5 ){
         obj.render.strokeStyle = "#ff0000";
+        found = true;
       }
     }
   }
