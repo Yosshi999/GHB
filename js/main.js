@@ -220,23 +220,24 @@ GAME.update = function(){
             mouseClick = false;
           }
           if( mouseClick ){
-            //link cut
-            for(var j=0; j<nodes[branches[i].linkA].link.length; j++){
-              if( nodes[branches[i].linkA].link[j] == branches[i].linkB ){
-                nodes[branches[i].linkA].link.splice(j,1);
-                break;
-              }
-            }
-            for(var j=0; j<nodes[branches[i].linkB].link.length; j++){
-              if( nodes[branches[i].linkB].link[j] == branches[i].linkA ){
-                nodes[branches[i].linkB].link.splice(j,1);
-                break;
-              }
-            }
             mouseClick = false;
             waitClick = false;
-            World.remove(engine.world, obj);
-            branches.splice(i,1);
+            //link cut
+            // for(var j=0; j<nodes[branches[i].linkA].link.length; j++){
+            //   if( nodes[branches[i].linkA].link[j] == branches[i].linkB ){
+            //     nodes[branches[i].linkA].link.splice(j,1);
+            //     break;
+            //   }
+            // }
+            // for(var j=0; j<nodes[branches[i].linkB].link.length; j++){
+            //   if( nodes[branches[i].linkB].link[j] == branches[i].linkA ){
+            //     nodes[branches[i].linkB].link.splice(j,1);
+            //     break;
+            //   }
+            // }
+            // World.remove(engine.world, obj);
+            // branches.splice(i,1);
+            GAME.cutBranch(i);
             i--;
           }
         }
@@ -321,6 +322,24 @@ GAME.update = function(){
     }
   }
 };
+GAME.cutBranch = function(key){
+  var i = key;
+  for(var j=0; j<nodes[branches[i].linkA].link.length; j++){
+    if( nodes[branches[i].linkA].link[j] == branches[i].linkB ){
+      nodes[branches[i].linkA].link.splice(j,1);
+      break;
+    }
+  }
+  for(var j=0; j<nodes[branches[i].linkB].link.length; j++){
+    if( nodes[branches[i].linkB].link[j] == branches[i].linkA ){
+      nodes[branches[i].linkB].link.splice(j,1);
+      break;
+    }
+  }
+  World.remove(engine.world, branches[i].obj);
+  branches.splice(i,1);
+};
+
 
 if( window.addEventListener ){
   window.addEventListener('load', GAME.init);
