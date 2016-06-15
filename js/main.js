@@ -185,7 +185,8 @@ GAME.init = function(){
       mouseClick = true;
     }
   });
-
+  GAME.waterCalc();
+  
 };
 GAME.update = function(){
   //mouseover,mouseclick
@@ -222,23 +223,11 @@ GAME.update = function(){
           if( mouseClick ){
             mouseClick = false;
             waitClick = false;
-            //link cut
-            // for(var j=0; j<nodes[branches[i].linkA].link.length; j++){
-            //   if( nodes[branches[i].linkA].link[j] == branches[i].linkB ){
-            //     nodes[branches[i].linkA].link.splice(j,1);
-            //     break;
-            //   }
-            // }
-            // for(var j=0; j<nodes[branches[i].linkB].link.length; j++){
-            //   if( nodes[branches[i].linkB].link[j] == branches[i].linkA ){
-            //     nodes[branches[i].linkB].link.splice(j,1);
-            //     break;
-            //   }
-            // }
-            // World.remove(engine.world, obj);
-            // branches.splice(i,1);
+
             GAME.cutBranch(i);
             i--;
+            // update waterData
+            GAME.waterCalc();
           }
         }
       }
@@ -247,50 +236,6 @@ GAME.update = function(){
   }
   // delete isolated graph
   {
-    // init
-    for(var key in nodes){
-      nodes[key].tag.water = false;
-      nodes[key].tag.value = 0;
-    }
-    for(var i=0; i<branches.length; i++){
-      branches[i].tag.water = false;
-    }
-    // start calc
-    var nextKeys = [];
-    for(var key in nodes){
-      if( nodes[key].tag.earth ){
-        nodes[key].tag.water = true;
-        nodes[key].tag.value = 1;
-
-        for(var i=0; i<nodes[key].link.length; i++){
-          nextKeys.push( nodes[key].link[i] );
-          for(var j=0; j<branches.length; j++){
-            if( (branches[j].linkA == key && branches[j].linkB == nodes[key].link[i])
-              || (branches[j].linkB == key && branches[j].linkA == nodes[key].link[i]) ){
-                branches[j].tag.water = true;
-            }
-          }
-        }
-      }
-    }
-    while(nextKeys.length > 0){
-      var key = nextKeys[0];
-      nodes[key].tag.water = true;
-      nodes[key].tag.value = 1;
-
-      for(var i=0; i<nodes[key].link.length; i++){
-        if( nodes[ nodes[key].link[i] ].tag.value == 0 ){
-          nextKeys.push( nodes[key].link[i] );
-          for(var j=0; j<branches.length; j++){
-            if( (branches[j].linkA == key && branches[j].linkB == nodes[key].link[i])
-              || (branches[j].linkB == key && branches[j].linkA == nodes[key].link[i]) ){
-                branches[j].tag.water = true;
-            }
-          }
-        }
-      }
-      nextKeys.splice(0,1);
-    }
     // delete nodes
     for(var key in nodes){
       if(!nodes[key].tag.water){
@@ -339,7 +284,52 @@ GAME.cutBranch = function(key){
   World.remove(engine.world, branches[i].obj);
   branches.splice(i,1);
 };
+GAME.waterCalc = function(){
+  // init
+  for(var key in nodes){
+    nodes[key].tag.water = false;
+    nodes[key].tag.value = 0;
+  }
+  for(var i=0; i<branches.length; i++){
+    branches[i].tag.water = false;
+  }
+  // start calc
+  var nextKeys = [];
+  for(var key in nodes){
+    if( nodes[key].tag.earth ){
+      nodes[key].tag.water = true;
+      nodes[key].tag.value = 1;
 
+      for(var i=0; i<nodes[key].link.length; i++){
+        nextKeys.push( nodes[key].link[i] );
+        for(var j=0; j<branches.length; j++){
+          if( (branches[j].linkA == key && branches[j].linkB == nodes[key].link[i])
+            || (branches[j].linkB == key && branches[j].linkA == nodes[key].link[i]) ){
+              branches[j].tag.water = true;
+          }
+        }
+      }
+    }
+  }
+  while(nextKeys.length > 0){
+    var key = nextKeys[0];
+    nodes[key].tag.water = true;
+    nodes[key].tag.value = 1;
+
+    for(var i=0; i<nodes[key].link.length; i++){
+      if( nodes[ nodes[key].link[i] ].tag.value == 0 ){
+        nextKeys.push( nodes[key].link[i] );
+        for(var j=0; j<branches.length; j++){
+          if( (branches[j].linkA == key && branches[j].linkB == nodes[key].link[i])
+            || (branches[j].linkB == key && branches[j].linkA == nodes[key].link[i]) ){
+              branches[j].tag.water = true;
+          }
+        }
+      }
+    }
+    nextKeys.splice(0,1);
+  }
+};
 
 if( window.addEventListener ){
   window.addEventListener('load', GAME.init);
