@@ -185,8 +185,9 @@ GAME.init = function(){
       mouseClick = true;
     }
   });
+  // init water
   GAME.waterCalc();
-  
+
 };
 GAME.update = function(){
   //mouseover,mouseclick
