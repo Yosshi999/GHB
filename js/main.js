@@ -23,6 +23,8 @@ var waitClick = false;
 var mouseConstraint,ball;
 var branches = [];    // Array( {obj: Constraint, linkA:str, linkB:str, tag:{alpha:int, water: bool} } )
 var nodes = {};       // Object{ x,y,obj,hideObj, tag:{alpha:int, value:int, water:bool} }
+
+var loadstack = 0;
 GAME.init = function(){
   //Engineì¬:
   var container = document.getElementById("canvas-container");
@@ -41,10 +43,8 @@ GAME.init = function(){
   mouseConstraint = MouseConstraint.create(engine);
   World.add(engine.world, mouseConstraint);
 
-  var order = [     // branches[fromX,fromY,toX,toY]
-    [-1,0,0,-2], [1,0,0,-2], [0,-2,0,-4], [0,-4,0,-6],
-
-  ];
+  // ƒOƒ‰ƒt‚ğ“Ç‚İ‚Ş
+  var order = getQuiz(0);
 
   //°
   var floor = Bodies.rectangle(320, 500, 650, 60, {
