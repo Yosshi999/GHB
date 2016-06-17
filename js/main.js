@@ -12,13 +12,15 @@ var Engine = Matter.Engine, //物理シュミレーションおよびレンダリングを管理する
 	//Vertices = Matter.Vertices, //頂点のセットを作成・操作するメソッドを含む
 	MouseConstraint = Matter.MouseConstraint; //マウスの制約を作成するためのメソッドが含む
 
-const _SCALE = 40;
+const _SCALE = 20;
 const _OFFSET = {x:320, y:470};
 var GAME = {};
 var engine = null;
 var mouse = new Vector2(0,0);
 var mouseClick = false;
 var waitClick = false;
+
+var cursor;
 
 var mouseConstraint,ball;
 var branches = [];    // Array( {obj: Constraint, linkA:str, linkB:str, tag:{alpha:int, water: bool} } )
@@ -142,13 +144,16 @@ GAME.init = function(){
     nodes[B[0]+":"+B[1]].link.push( A[0]+":"+A[1] );
   }
 
-
-  var softbody = Composites.softBody(100,50,1,5,0,0,true,10,{
-    friction: 0.05,
-    frictionStatic: 0.1,
-    render: { visible: true }
+  // マウスカーソル
+  cursor = Bodies.circle(10, 10, 8, {
+    isStatic: true,
+    render: {
+      sprite: {
+        texture: "./img/plier_green.png"
+      }
+    }
   });
-  World.add(engine.world, softbody);
+  World.add(engine.world, cursor);
 
   //ball
   var x = 3;
@@ -160,7 +165,10 @@ GAME.init = function(){
     restitution: 1,
     friction: 0.01,
     render: {
-      fillStyle: "#ff0000"
+      sprite: {
+        texture: "./img/mudai.png"
+      }
+      //fillStyle: "#ff0000"
     }
   });
   World.add(engine.world, ball);
@@ -174,17 +182,20 @@ GAME.init = function(){
   engine.render.canvas.addEventListener('mousemove', function(e){
     mouse.x = e.pageX - 5;
     mouse.y = e.pageY - 5;
+    Body.setPosition(cursor, {x:mouse.x, y:mouse.y});
     //Body.setPosition(ball, {x:x, y:y});
   	// var c = Bodies.circle(64*5, 0, 10, { restitution: 1.2 });
   	// World.add(engine.world, [c]);
   });
   engine.render.canvas.addEventListener("mousedown",function(e){
-    mouse.x = e.pageX -5;
-    mouse.y = e.pageY -5;
+    mouse.x = e.pageX-5;
+    mouse.y = e.pageY-5;
     if(waitClick){
       mouseClick = true;
     }
   });
+
+
   // init water
   GAME.waterCalc();
 
