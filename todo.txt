@@ -1,3 +1,0 @@
-svgファイル（できれば）
-	ただしjquery.getはgooglechrome で使えない
-画像ファイル(テクスチャ用)
