@@ -1,21 +1,47 @@
 <!doctype html>
 <html>
 <head>
-<!--
+
   <script type="text/javascript" src="./js/lib/jquery-3.0.0.min.js"></script>
--->
+
   <script type="text/javascript" src="./js/lib/matter.min.js"></script>
   <script src="./js/vector.js"></script>
   <style type="text/css">
+    #canvas-container {
+      position: absolute;
+      z-index: 0;
+    }
     /* bgcolor of canvas */
     #canvas-container canvas{
+      position: absolute;
+      z-index: 0;
       background-color: white !important;
       background-image: url("./img/sky.png") !important;
-      cursor: none;
+      /*cursor: url("./img/Cplier_red.png"), auto;*/
+
     }
+    .off_ {
+      pointer-events: none;
+    }
+
+    #layer {
+      position: absolute;
+      top: 20px;
+      left: 150px;
+      width: 300px;
+      height: 100px;
+      background-color: #333333;
+      border: 3px red solid;
+      color: #00ff00;
+      z-index: 1;
+      pointer-events: none;
+    }
+
   </style>
 
   <script src="./js/quizList.js"></script>
+  <script src="./js/console.js" charset="UTF-8"></script>
+  <script src="./js/cpu.js"></script>
   <script src="./js/main.js"></script>
 
 
@@ -23,5 +49,7 @@
 
 <body>
   <div id="canvas-container"></div>
+  <div id="layer"></div>
+
 </body>
 </html>

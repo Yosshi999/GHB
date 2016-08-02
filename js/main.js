@@ -1,4 +1,4 @@
-(function(){
+/*(function(){*/
 //Matter.js モジュール 初期設定
 var Engine = Matter.Engine, //物理シュミレーションおよびレンダリングを管理する
   Events = Matter.Events,
@@ -12,15 +12,17 @@ var Engine = Matter.Engine, //物理シュミレーションおよびレンダリングを管理する
 	//Vertices = Matter.Vertices, //頂点のセットを作成・操作するメソッドを含む
 	MouseConstraint = Matter.MouseConstraint; //マウスの制約を作成するためのメソッドが含む
 
-const _SCALE = 20;
+const _SCALE = 40;
 const _OFFSET = {x:320, y:470};
 var GAME = {};
+const layer = new Console();
+const cpu = new Cpu();
 var engine = null;
 var mouse = new Vector2(0,0);
 var mouseClick = false;
 var waitClick = false;
 
-var cursor;
+var turn = 0;   // 0:red, 1:blue(cpu)
 
 var mouseConstraint,ball;
 var branches = [];    // Array( {obj: Constraint, linkA:str, linkB:str, tag:{alpha:int, water: bool} } )
@@ -28,6 +30,8 @@ var nodes = {};       // Object{ x,y,obj,hideObj, tag:{alpha:int, value:int, wat
 
 var loadstack = 0;
 GAME.init = function(){
+  // Console
+  layer.init();
   //Engine作成:
   var container = document.getElementById("canvas-container");
   engine = Engine.create(container, {
@@ -40,6 +44,7 @@ GAME.init = function(){
       }
     }
   });
+
 
   //マウス操作追加
   mouseConstraint = MouseConstraint.create(engine);
@@ -144,52 +149,18 @@ GAME.init = function(){
     nodes[B[0]+":"+B[1]].link.push( A[0]+":"+A[1] );
   }
 
-  // マウスカーソル
-  cursor = Bodies.circle(10, 10, 8, {
-    isStatic: true,
-    render: {
-      sprite: {
-        texture: "./img/plier_green.png"
-      }
-    }
-  });
-  World.add(engine.world, cursor);
-
-  //ball
-  var x = 3;
-  var y = 3;
-  ball =  Bodies.circle(x, y, 15, {
-    isStatic: true,
-    density: 0.0005,
-    frictionAir: 0.01,
-    restitution: 1,
-    friction: 0.01,
-    render: {
-      sprite: {
-        texture: "./img/mudai.png"
-      }
-      //fillStyle: "#ff0000"
-    }
-  });
-  World.add(engine.world, ball);
-  //Body.setPosition(ball, {x:64*4, y:0});
-
   Engine.run(engine);
 
   Events.on(engine, "afterUpdate", function(){
     GAME.update();
   });
   engine.render.canvas.addEventListener('mousemove', function(e){
-    mouse.x = e.pageX - 5;
-    mouse.y = e.pageY - 5;
-    Body.setPosition(cursor, {x:mouse.x, y:mouse.y});
-    //Body.setPosition(ball, {x:x, y:y});
-  	// var c = Bodies.circle(64*5, 0, 10, { restitution: 1.2 });
-  	// World.add(engine.world, [c]);
-  });
+    mouse.x = e.pageX + 0;
+    mouse.y = e.pageY + 0;
+    });
   engine.render.canvas.addEventListener("mousedown",function(e){
-    mouse.x = e.pageX-5;
-    mouse.y = e.pageY-5;
+    mouse.x = e.pageX+0;
+    mouse.y = e.pageY+0;
     if(waitClick){
       mouseClick = true;
     }
@@ -198,11 +169,12 @@ GAME.init = function(){
 
   // init water
   GAME.waterCalc();
+  //cpu.calc(nodes);
 
 };
 GAME.update = function(){
   //mouseover,mouseclick
-  {
+  if(turn == 0){
     var found = false;
     for(var i=0; i<branches.length; i++){
       if(branches[i].tag.alpha != 1){
@@ -240,6 +212,7 @@ GAME.update = function(){
             i--;
             // update waterData
             GAME.waterCalc();
+            GAME.turnChange();
           }
         }
       }
@@ -279,6 +252,41 @@ GAME.update = function(){
     }
   }
 };
+GAME.turnChange = function(){
+  turn = (turn+1)%2;
+  let cuttable = [];
+  for(var i=0; i<branches.length; i++){
+    if(branches[i].tag.water){
+      cuttable.push(i);
+    }
+  }
+  if(cuttable.length == 0){
+    if(turn == 0){
+      layer.text("残念!　あなたの負けです。<br><br>'F5'でリトライ");
+    }
+    if(turn == 1){
+      layer.text("おめでとう!　あなたの勝ちです。<br><br>'F5'でリトライ");
+    }
+    turn = -1;
+  }
+  switch(turn){
+    case 0:     // red
+      $("#canvas-container canvas").removeClass("off");
+      break;
+    case 1:
+      layer.text("考え中...");
+      $("#canvas-container canvas").addClass("off");
+      setTimeout( ()=>{
+        const que = cpu.cutBranch(nodes,branches);
+        GAME.cutBranch(que);
+        layer.text("どうぞ。あなたの番です。");
+        GAME.waterCalc();
+        console.log(cpu.calc(nodes));
+        GAME.turnChange();
+      }, 1000);
+      break;
+  }
+}
 GAME.cutBranch = function(key){
   var i = key;
   for(var j=0; j<nodes[branches[i].linkA].link.length; j++){
@@ -349,4 +357,4 @@ if( window.addEventListener ){
   window.attachEvent('load', GAME.init);
 }
 
-})();
+/*})();*/
