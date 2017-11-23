@@ -7,13 +7,14 @@
   <script type="text/javascript" src="./js/lib/matter.min.js"></script>
   <script src="./js/vector.js"></script>
   <style type="text/css">
+    .flex {
+        display: flex;
+    }
     #canvas-container {
-      position: absolute;
       z-index: 0;
     }
     /* bgcolor of canvas */
     #canvas-container canvas{
-      position: absolute;
       z-index: 0;
       background-color: white !important;
       background-image: url("./img/sky.png") !important;
@@ -36,20 +37,58 @@
       z-index: 1;
       pointer-events: none;
     }
+	button.button7 {
+		
+		height: 2em;
+		/* 文字の太さをboldに指定 */
+		font-weight: bold;
 
+		/* 縦方向に10px、
+		 * 横方向に30pxの余白を指定 */
+		padding: 0 1em;
+
+		/* 文字色を白色に指定 */
+		color: #000;
+
+		/* ボーダーをなくす */
+		border-style: none;
+
+		/* ボタンの影の指定
+		 * 影の横幅を2px
+		 * 縦長を2px
+		 * ぼかしを3px
+		 * 広がりを1px
+		 * 色を#666（グレー）に指定 */
+		box-shadow: 2px 2px 3px 1px #666;
+		-moz-box-shadow: 2px 2px 3px 1px #666;
+		-webkit-box-shadow: 2px 2px 3px 1px #666;
+
+		/* グラデーションの指定 */
+		background: linear-gradient(0deg, #fff, #ccc, #fff)
+	}
+
+
+button.button7:hover {
+    /* 透明度を20%に指定 */
+    opacity: 0.8;
+}
   </style>
 
   <script src="./js/quizList.js"></script>
   <script src="./js/console.js" charset="UTF-8"></script>
   <script src="./js/cpu.js"></script>
-  <script src="./js/main.js"></script>
+  <script src="./js/main.js" charset="UTF-8"></script>
 
 
 </head>
 
 <body>
-  <div id="canvas-container"></div>
-  <div id="layer"></div>
-
+  <div class="flex">
+    <div>
+      <div id="canvas-container"></div>
+      <div id="layer"></div>
+    </div>
+	<button class="button7" onclick="window.location.reload();">リセット</button>
+  </div>
 </body>
 </html>

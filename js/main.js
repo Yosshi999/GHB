@@ -1,16 +1,16 @@
 /*(function(){*/
-//Matter.js ƒ‚ƒWƒ…[ƒ‹ ‰Šúİ’è
-var Engine = Matter.Engine, //•¨—ƒVƒ…ƒ~ƒŒ[ƒVƒ‡ƒ“‚¨‚æ‚ÑƒŒƒ“ƒ_ƒŠƒ“ƒO‚ğŠÇ—‚·‚é
+//Matter.js ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ« åˆæœŸè¨­å®š
+var Engine = Matter.Engine, //ç‰©ç†ã‚·ãƒ¥ãƒŸãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ãŠã‚ˆã³ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚’ç®¡ç†ã™ã‚‹
   Events = Matter.Events,
-  Render = Matter.Render, //ƒfƒoƒbƒO—p‚Ì•`‰æ
-	World = Matter.World, //•¨—‰‰Z—Ìˆæ‚Ìì¬E‘€ì‚·‚éƒƒ\ƒbƒh‚ğŠÜ‚Ş
-	Body = Matter.Body, //„‘Ì‚Ìƒ‚ƒfƒ‹‚ğì¬E‘€ì‚·‚éƒƒ\ƒbƒh‚ğŠÜ‚Ş
-	Bodies = Matter.Bodies, //ˆê”Ê“I‚È„‘Ìƒ‚ƒfƒ‹‚ğì¬‚·‚éƒƒ\ƒbƒh‚ğŠÜ‚Ş
-	Constraint = Matter.Constraint, //§–ñ‚ğì¬E‘€ì‚·‚éƒƒ\ƒbƒh‚ğŠÜ‚Ş
+  Render = Matter.Render, //ãƒ‡ãƒãƒƒã‚°ç”¨ã®æç”»
+	World = Matter.World, //ç‰©ç†æ¼”ç®—é ˜åŸŸã®ä½œæˆãƒ»æ“ä½œã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰ã‚’å«ã‚€
+	Body = Matter.Body, //å‰›ä½“ã®ãƒ¢ãƒ‡ãƒ«ã‚’ä½œæˆãƒ»æ“ä½œã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰ã‚’å«ã‚€
+	Bodies = Matter.Bodies, //ä¸€èˆ¬çš„ãªå‰›ä½“ãƒ¢ãƒ‡ãƒ«ã‚’ä½œæˆã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰ã‚’å«ã‚€
+	Constraint = Matter.Constraint, //åˆ¶ç´„ã‚’ä½œæˆãƒ»æ“ä½œã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰ã‚’å«ã‚€
 	Composites = Matter.Composites,
 	//Common = Matter.Common,
-	//Vertices = Matter.Vertices, //’¸“_‚ÌƒZƒbƒg‚ğì¬E‘€ì‚·‚éƒƒ\ƒbƒh‚ğŠÜ‚Ş
-	MouseConstraint = Matter.MouseConstraint; //ƒ}ƒEƒX‚Ì§–ñ‚ğì¬‚·‚é‚½‚ß‚Ìƒƒ\ƒbƒh‚ªŠÜ‚Ş
+	//Vertices = Matter.Vertices, //é ‚ç‚¹ã®ã‚»ãƒƒãƒˆã‚’ä½œæˆãƒ»æ“ä½œã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰ã‚’å«ã‚€
+	MouseConstraint = Matter.MouseConstraint; //ãƒã‚¦ã‚¹ã®åˆ¶ç´„ã‚’ä½œæˆã™ã‚‹ãŸã‚ã®ãƒ¡ã‚½ãƒƒãƒ‰ãŒå«ã‚€
 
 const _SCALE = 40;
 const _OFFSET = {x:320, y:470};
@@ -32,7 +32,7 @@ var loadstack = 0;
 GAME.init = function(){
   // Console
   layer.init();
-  //Engineì¬:
+  //Engineä½œæˆ:
   var container = document.getElementById("canvas-container");
   engine = Engine.create(container, {
     render: {
@@ -46,14 +46,14 @@ GAME.init = function(){
   });
 
 
-  //ƒ}ƒEƒX‘€ì’Ç‰Á
+  //ãƒã‚¦ã‚¹æ“ä½œè¿½åŠ 
   mouseConstraint = MouseConstraint.create(engine);
   World.add(engine.world, mouseConstraint);
 
-  // ƒOƒ‰ƒt‚ğ“Ç‚İ‚Ş
+  // ã‚°ãƒ©ãƒ•ã‚’èª­ã¿è¾¼ã‚€
   var order = getQuiz(0);
 
-  //°
+  //åºŠ
   var floor = Bodies.rectangle(320, 500, 650, 60, {
     isStatic: true,
     render: {
@@ -63,7 +63,7 @@ GAME.init = function(){
   World.add(engine.world, floor);
 
 
-  //ß
+  //ç¯€
   nodes = {};
   groundNodes = [];
   for(var i=0; i<order.length; i++){
@@ -111,7 +111,7 @@ GAME.init = function(){
     }
   }
 
-  //}
+  //æ
 
   for(var i=0; i<order.length; i++){
     var A = [ order[i][0], order[i][1] ];
@@ -262,11 +262,12 @@ GAME.turnChange = function(){
   }
   if(cuttable.length == 0){
     if(turn == 0){
-      layer.text("c”O!@‚ ‚È‚½‚Ì•‰‚¯‚Å‚·B<br><br>'F5'‚ÅƒŠƒgƒ‰ƒC");
+      layer.text("æ®‹å¿µ!ã€€ã‚ãªãŸã®è² ã‘ã§ã™ã€‚");
     }
     if(turn == 1){
-      layer.text("‚¨‚ß‚Å‚Æ‚¤!@‚ ‚È‚½‚ÌŸ‚¿‚Å‚·B<br><br>'F5'‚ÅƒŠƒgƒ‰ƒC");
+      layer.text("ãŠã‚ã§ã¨ã†!ã€€ã‚ãªãŸã®å‹ã¡ã§ã™ã€‚");
     }
+	$('.button7').addClass('active');
     turn = -1;
   }
   switch(turn){
@@ -274,12 +275,12 @@ GAME.turnChange = function(){
       $("#canvas-container canvas").removeClass("off");
       break;
     case 1:
-      layer.text("l‚¦’†...");
+      layer.text("è€ƒãˆä¸­...");
       $("#canvas-container canvas").addClass("off");
       setTimeout( ()=>{
         const que = cpu.cutBranch(nodes,branches);
         GAME.cutBranch(que);
-        layer.text("‚Ç‚¤‚¼B‚ ‚È‚½‚Ì”Ô‚Å‚·B");
+        layer.text("ã©ã†ãã€‚ã‚ãªãŸã®ç•ªã§ã™ã€‚");
         GAME.waterCalc();
         console.log(cpu.calc(nodes));
         GAME.turnChange();
